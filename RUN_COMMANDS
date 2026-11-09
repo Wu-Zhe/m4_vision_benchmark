@@ -1,0 +1,13 @@
+brew install python@3.12
+
+cd m4_vision_benchmark
+
+PYTHON_BIN="$(brew --prefix python@3.12)/bin/python3.12" bash setup_m4.sh
+
+zhewu@Mac m4_vision_benchmark % PYTHON_BIN="$(brew --prefix python@3.12)/bin/python3.12" bash setup_m4.sh
+
+  .venv/bin/python download_models.py
+  .venv-ocr/bin/python download_models.py --ocr
+  bash run_all.sh
+
+

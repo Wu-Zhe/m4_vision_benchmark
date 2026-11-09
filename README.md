@@ -105,6 +105,3 @@ Query documents with `prompt_name="SearchQuery"`; embed images as multimodal dic
 - Official PaddleOCR 3.x OCR usage: https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/pipeline_usage/OCR.en.md
 
 **Verification note:** I checked the published model IDs and inference APIs, and locally validated the scripts/fixture generator. I could not execute the actual three model inferences in this environment (no Mac M4 and no model weight downloads), so device-specific installation and throughput are not represented as measured results.
-# m4_vision_benchmark
-# m4_vision_benchmark
-# m4_vision_benchmark

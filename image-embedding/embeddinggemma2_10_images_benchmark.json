@@ -1,0 +1,57 @@
+{
+  "model": "google/embeddinggemma-2",
+  "model_path": "/Users/zhewu/common-models/embeddinggemma-2",
+  "image_directory": "/Users/zhewu/src/ecommerce-image-fetcher/output-bigfiles",
+  "filenames": [
+    "128152866781_1.webp",
+    "128152866781_2.webp",
+    "128152866781_3.webp",
+    "147069867106_1.webp",
+    "147069867106_2.webp",
+    "147069867106_3.webp",
+    "147069867106_4.webp",
+    "147069867106_5.webp",
+    "147069867106_6.webp",
+    "147069867106_7.webp"
+  ],
+  "count": 10,
+  "embedding_shape": [
+    10,
+    768
+  ],
+  "stored_dtype": "float16",
+  "stored_format": "npz (ZIP-compressed NumPy archive)",
+  "device": "cpu",
+  "batch_size": 10,
+  "timing_seconds": {
+    "model_load": 1.938346,
+    "batched_encode_10_images": 16.934541,
+    "serialize_npz": 0.00106,
+    "end_to_end_model_load_through_persist": 18.873956,
+    "per_image_encode": 1.693454
+  },
+  "cpu_utilization": {
+    "process_cpu_seconds": 50.684049,
+    "process_percent_of_one_core_over_end_to_end": 268.54,
+    "process_percent_of_all_logical_cores_over_end_to_end": 26.85,
+    "logical_cpu_count": 10
+  },
+  "gpu": {
+    "torch_version": "2.15.0",
+    "mps_built": true,
+    "mps_available": false,
+    "gpu_utilization_percent": null,
+    "gpu_utilization_status": "unavailable: PyTorch MPS is not available in this runtime"
+  },
+  "host": {
+    "platform": "macOS-27.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "python": "3.12.16 (main, Oct 25 2026, 18:24:37) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "outputs": {
+    "embedding_archive": "/Users/zhewu/src/m4_vision_benchmark/image-embedding/embeddinggemma2_10_images_float16.npz",
+    "image_manifest": "/Users/zhewu/src/m4_vision_benchmark/image-embedding/embeddinggemma2_10_images.txt",
+    "benchmark_report": "/Users/zhewu/src/m4_vision_benchmark/image-embedding/embeddinggemma2_10_images_benchmark.json"
+  },
+  "method": "single batched SentenceTransformer.encode call; local checkpoint; no model download"
+}

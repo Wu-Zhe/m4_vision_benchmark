@@ -138,3 +138,6 @@ Image Embedding Workload generation
 
 	(ecommerce-image-fetcher) zhewu@Mac image-embedding % ../.venv/bin/python embed_images.py /Users/zhewu/src/ecommerce-image-fetcher/output-bigfiles --batch-size 8  --device mps --output output  --input input --start-record-number 1  --stop-record-number 1024 
 
+
+(ecommerce-image-fetcher) zhewu@Mac ~ % ln -s /Volumes/New\ Volume/ecommerce-images  .
+

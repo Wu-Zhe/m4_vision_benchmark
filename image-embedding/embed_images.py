@@ -8,6 +8,7 @@ Binary format (little-endian):
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import os
 import platform
@@ -38,20 +39,44 @@ RECORD_LENGTH = struct.Struct("<I")
 DEFAULT_MODEL = Path("/Users/zhewu/common-models/embeddinggemma-2")
 
 
-def read_image_list(image_dir: Path, input_dir: Path) -> tuple[list[str], list[Path]]:
-    list_path = input_dir / "inputImageList.txt"
-    if not list_path.is_file():
-        raise FileNotFoundError(f"Missing image list: {list_path}")
+def find_input_list(input_dir: Path) -> Path:
+    """Find the input list, supporting plain text and gzip-compressed files."""
+    plain_path = input_dir / "inputImageList.txt"
+    gzip_path = input_dir / "inputImageList.txt.gz"
+    if plain_path.is_file():
+        return plain_path
+    if gzip_path.is_file():
+        return gzip_path
+    raise FileNotFoundError(f"Missing image list: {plain_path} or {gzip_path}")
+
+
+def read_image_list(
+    image_dir: Path,
+    input_dir: Path,
+    validate_inputs: bool = False,
+) -> tuple[list[str], list[Path]]:
+    list_path = find_input_list(input_dir)
 
     names: list[str] = []
     paths: list[Path] = []
-    for raw_line in list_path.read_text(encoding="utf-8").splitlines():
+    if list_path.suffix == ".gz":
+        list_stream = gzip.open(list_path, mode="rt", encoding="utf-8")
+    else:
+        list_stream = list_path.open("r", encoding="utf-8")
+
+    with list_stream:
+        lines = list_stream.read().splitlines()
+
+    for raw_line in lines:
         name = raw_line.strip()
         if not name or name.startswith("#"):
             continue
         path = Path(name)
         resolved = path if path.is_absolute() else image_dir / path
-        if not resolved.is_file():
+        # Avoid one filesystem metadata lookup per image by default. Missing
+        # files fail naturally during model.encode(); validation is opt-in for
+        # large directories.
+        if validate_inputs and not resolved.is_file():
             raise FileNotFoundError(f"Image listed in {list_path} not found: {resolved}")
         names.append(name)
         paths.append(resolved)
@@ -107,16 +132,25 @@ def append_unique_names(path: Path, names: list[str], known: set[str]) -> int:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("directory", type=Path, help="Directory containing the images")
+    parser.add_argument(
+        "directory",
+        type=Path,
+        help="Directory containing the images; paths with spaces are supported",
+    )
     parser.add_argument(
         "--input",
         type=Path,
-        help="Directory containing inputImageList.txt (default: image directory)",
+        help="Directory containing inputImageList.txt or inputImageList.txt.gz (default: image directory)",
     )
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
     parser.add_argument("--batch-size", type=int, default=10)
     parser.add_argument("--start-record-number", type=int, default=1, help="1-based first input-list record to embed")
     parser.add_argument("--stop-record-number", type=int, help="1-based last input-list record to embed")
+    parser.add_argument(
+        "--validate-inputs",
+        action="store_true",
+        help="Check every listed image exists before embedding; slower for huge directories",
+    )
     parser.add_argument("--device", choices=["auto", "mps", "cpu"], default="auto")
     parser.add_argument("--output", type=Path, help="Binary output path; defaults to directory/image_embeddings.bin")
     # parser.add_argument("--report", type=Path, help="JSON report path; defaults to directory/image_embeddings_report.json")
@@ -143,7 +177,11 @@ def main() -> None:
     gpu_monitor_file = None
     report: dict | None = None
     try:
-        all_names, all_image_paths = read_image_list(image_dir, input_dir)
+        all_names, all_image_paths = read_image_list(
+            image_dir,
+            input_dir,
+            validate_inputs=args.validate_inputs,
+        )
         start_record_number = args.start_record_number
         stop_record_number = args.stop_record_number or len(all_names)
         if start_record_number < 1:
@@ -268,7 +306,7 @@ def main() -> None:
             "model": "google/embeddinggemma-2",
             "model_path": str(args.model),
             "image_directory": str(image_dir),
-            "input_list": str(input_dir / "inputImageList.txt"),
+            "input_list": str(find_input_list(input_dir)),
             "input_record_count": len(all_names),
             "start_record_number": start_record_number,
             "stop_record_number": stop_record_number,

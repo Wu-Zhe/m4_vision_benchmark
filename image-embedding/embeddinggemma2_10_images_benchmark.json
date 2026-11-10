@@ -17,31 +17,57 @@
   "count": 10,
   "embedding_shape": [
     10,
-    768
+    256
   ],
   "stored_dtype": "float16",
   "stored_format": "npz (ZIP-compressed NumPy archive)",
-  "device": "cpu",
+  "device": "mps",
   "batch_size": 10,
   "timing_seconds": {
-    "model_load": 1.938346,
-    "batched_encode_10_images": 16.934541,
-    "serialize_npz": 0.00106,
-    "end_to_end_model_load_through_persist": 18.873956,
-    "per_image_encode": 1.693454
+    "model_load": 2.684231,
+    "batched_encode_10_images": 8.315619,
+    "serialize_npz": 0.001231,
+    "end_to_end_model_load_through_persist": 11.001089,
+    "per_image_encode": 0.831562
   },
   "cpu_utilization": {
-    "process_cpu_seconds": 50.684049,
-    "process_percent_of_one_core_over_end_to_end": 268.54,
-    "process_percent_of_all_logical_cores_over_end_to_end": 26.85,
+    "process_cpu_seconds": 3.914984,
+    "process_percent_of_one_core_over_end_to_end": 35.59,
+    "process_percent_of_all_logical_cores_over_end_to_end": 3.56,
     "logical_cpu_count": 10
   },
   "gpu": {
     "torch_version": "2.15.0",
     "mps_built": true,
-    "mps_available": false,
-    "gpu_utilization_percent": null,
-    "gpu_utilization_status": "unavailable: PyTorch MPS is not available in this runtime"
+    "mps_available": true,
+    "gpu_utilization_percent": 56.88,
+    "gpu_utilization_status": "GPU HW active residency parsed from powermetrics",
+    "monitor_script": "/Users/zhewu/bin/run_powermetrics",
+    "monitor_output": "/Users/zhewu/src/m4_vision_benchmark/image-embedding/gpu_usage_output.txt",
+    "monitor_pid": 50809,
+    "gpu_utilization_peak_percent": 100.0,
+    "powermetrics_summary": {
+      "output_file": "/Users/zhewu/src/m4_vision_benchmark/image-embedding/gpu_usage_output.txt",
+      "gpu_active_residency_percent": {
+        "sample_count": 15,
+        "average": 56.88,
+        "peak": 100.0,
+        "unit": "%"
+      },
+      "gpu_power_mw": {
+        "sample_count": 15,
+        "average": 7966.53,
+        "peak": 16815.0,
+        "unit": "mW"
+      },
+      "gpu_memory_mb": {
+        "sample_count": 0,
+        "average": null,
+        "peak": null,
+        "unit": "MB",
+        "status": "not reported by powermetrics gpu_power output; cannot infer GPU memory"
+      }
+    }
   },
   "host": {
     "platform": "macOS-27.2-arm64-arm-64bit",

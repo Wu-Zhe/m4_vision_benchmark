@@ -11,3 +11,101 @@ zhewu@Mac m4_vision_benchmark % PYTHON_BIN="$(brew --prefix python@3.12)/bin/pyt
   bash run_all.sh
 
 
+
+Image Embedding
+	# To generate the embeddings
+	/Users/zhewu/src/m4_vision_benchmark/.venv/bin/python benchmark_10_embeddinggemma.py
+
+	For an image similarity test, use 256 dimensions as the default.
+
+	EmbeddingGemma-2 supports 768, 512, 256, and 128 dimensions through Matryoshka truncation. The model guidance says quality is close to lossless at 256, while 128 can substantially degrade multimodal/image quality. Model card
+	- 256D: recommended balance for product-image similarity
+	- 512D: use for fine-grained differences or near-duplicate detection
+	- 768D: maximum quality; use when storage/search cost is irrelevant
+	- 128D: only for coarse similarity after validating recall
+	Always re-normalize after truncation:
+
+
+	# To preview
+
+	../.venv/bin/python preview_npz.py
+	Keys in file: ['filenames', 'embeddings', 'embedding_dtype', 'normalized', 'model']
+
+	--- filenames --- shape=(10,), dtype=<U19
+	['128152866781_1.webp' '128152866781_2.webp' '128152866781_3.webp'
+	 '147069867106_1.webp' '147069867106_2.webp']
+
+	--- embeddings --- shape=(10, 256), dtype=float16
+	[[-0.0759    0.01264   0.02052  ...  0.0359    0.04852  -0.0308  ]
+	 [-0.03375   0.00635   0.06433  ...  0.04147   0.0576   -0.01976 ]
+	 [-0.084     0.002975  0.04575  ...  0.0356    0.04044  -0.02939 ]
+	 [-0.02028  -0.001848 -0.01987  ...  0.05798   0.02043  -0.009445]
+	 [-0.03458   0.0436    0.00868  ...  0.0415    0.097    -0.01311 ]]
+
+	--- embedding_dtype --- shape=(), dtype=<U7
+	float16
+
+	--- normalized --- shape=(), dtype=bool
+	True
+
+	--- model --- shape=(), dtype=<U23
+	google/embeddinggemma-2
+
+	model       : google/embeddinggemma-2
+	dtype       : float16
+	normalized  : True
+	total items : 10, embedding dim: 256
+
+	[1] 128152866781_1.webp
+	    first 8 values: [-0.0759  0.0126  0.0205 -0.0017  0.0333 -0.0213 -0.0074 -0.022 ]
+	    L2 norm: 0.9999
+
+	[2] 128152866781_2.webp
+	    first 8 values: [-0.0338  0.0064  0.0643 -0.0069  0.0145  0.0008 -0.0001  0.0193]
+	    L2 norm: 1.0000
+
+	[3] 128152866781_3.webp
+	    first 8 values: [-0.084   0.003   0.0457 -0.0119  0.0407  0.0008 -0.0071 -0.0006]
+	    L2 norm: 1.0000
+
+
+
+Test backend MPS
+	/Users/zhewu/src/m4_vision_benchmark/.venv/bin/python -c \
+	'import torch; print(torch.backends.mps.is_available())'
+	True
+
+
+Compile C code
+	cd /Users/zhewu/src/m4_vision_benchmark/image-embedding
+	clang -Wall -Wextra -O2 run_powermetrics.c -o run_powermetrics
+
+
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding %   clang -Wall -Wextra -O2 run_powermetrics.c -o run_powermetrics
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % cp run_powermetrics ~/bin
+	sudo chmod u+sx ~/bin/run_powermetrics
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % sudo chmod a+x ~/bin/run_powermetrics
+	ls -l ~/bin/run_powermetrics
+	-rwsr-xr-x  1 root  staff  33744 Nov 10 12:18 /Users/zhewu/bin/run_powermetrics
+
+
+Embed a large batch of images
+
+	ls -1 /Users/zhewu/src/ecommerce-image-fetcher/output-bigfiles/*.webp > /Users/zhewu/src/ecommerce-image-fetcher/output-bigfiles/inputImageList.txt
+  
+
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding %   ../.venv/bin/python embed_images.py /Users/zhewu/src/ecommerce-image-fetcher/output-bigfiles --batch-size 8  --device mps --output output
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % ls -l output 
+	total 48
+	-rw-r--r--  1 zhewu  staff     97 Nov 10 14:26 gpu_usage_output.txt
+	-rw-r--r--  1 zhewu  staff   3636 Nov 10 14:26 image_embeddings_report.json
+	-rw-r--r--  1 zhewu  staff  14463 Nov 10 14:26 image_embeddings.bin
+
+
+
+
+Read/Parse generated embedding
+	../.venv/bin/python read_entries_from_embeddings_bin.py |less
+
+	../.venv/bin/python read_entries_from_embeddings_bin.py output/image_embeddings.bin --start-record 21 --end-record 30
+

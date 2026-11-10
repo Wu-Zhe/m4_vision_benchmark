@@ -121,18 +121,18 @@ def main() -> None:
             image_inputs,
             batch_size=args.batch_size,
             normalize_embeddings=True,
-            truncate_dim=768,
+            truncate_dim=256,
             convert_to_numpy=True,
             show_progress_bar=False,
         ),
         dtype=np.float32,
     )
     encode_seconds = time.perf_counter() - encode_start
-    if embeddings.shape != (10, 768):
+    if embeddings.shape != (10, 256):
         raise RuntimeError(f"Unexpected embedding shape: {embeddings.shape}")
 
     serialize_start = time.perf_counter()
-    # Store only float16 vectors: 15,360 raw vector bytes for 10 x 768, then
+    # Store only float16 vectors: 15,360 raw vector bytes for 10 x 256, then
     # ZIP compression. Filenames remain lossless UTF-8 NumPy strings.
     np.savez_compressed(
         args.output,

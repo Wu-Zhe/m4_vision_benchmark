@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1,
+    "file": "red_cotton_tshirt.png",
+    "text_query": "red cotton T-shirt, size L, printed NORTH logo",
+    "expected_attributes": {
+      "product_type": "T-shirt",
+      "primary_color": "red",
+      "size_or_capacity": "L",
+      "model_number": null,
+      "brand_or_printed_logo": "NORTH"
+    },
+    "expected_printed_text": "NORTH"
+  },
+  {
+    "id": 2,
+    "file": "blue_running_shoe.png",
+    "text_query": "blue running shoe, US size 9, TRAILRUN",
+    "expected_attributes": {
+      "product_type": "running shoe",
+      "primary_color": "blue",
+      "size_or_capacity": "US 9",
+      "model_number": null,
+      "brand_or_printed_logo": "TRAILRUN"
+    },
+    "expected_printed_text": "TRAILRUN"
+  },
+  {
+    "id": 3,
+    "file": "green_water_bottle.png",
+    "text_query": "green stainless steel water bottle, 750 mL, PURE",
+    "expected_attributes": {
+      "product_type": "water bottle",
+      "primary_color": "green",
+      "size_or_capacity": "750 mL",
+      "model_number": null,
+      "brand_or_printed_logo": "PURE"
+    },
+    "expected_printed_text": "PURE"
+  },
+  {
+    "id": 4,
+    "file": "black_headphones.png",
+    "text_query": "black over-ear headphones, AURORA model H200",
+    "expected_attributes": {
+      "product_type": "headphones",
+      "primary_color": "black",
+      "size_or_capacity": null,
+      "model_number": "H200",
+      "brand_or_printed_logo": "AURORA"
+    },
+    "expected_printed_text": "AURORA"
+  },
+  {
+    "id": 5,
+    "file": "yellow_backpack.png",
+    "text_query": "yellow travel backpack, 20 L capacity, TRAVEL",
+    "expected_attributes": {
+      "product_type": "backpack",
+      "primary_color": "yellow",
+      "size_or_capacity": "20 L",
+      "model_number": null,
+      "brand_or_printed_logo": "TRAVEL"
+    },
+    "expected_printed_text": "TRAVEL"
+  }
+]

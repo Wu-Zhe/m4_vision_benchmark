@@ -109,3 +109,32 @@ Read/Parse generated embedding
 
 	../.venv/bin/python read_entries_from_embeddings_bin.py output/image_embeddings.bin --start-record 21 --end-record 30
 
+
+
+Implemented suc.txt and failed.txt
+
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % ../.venv/bin/python embed_images.py /Users/zhewu/src/ecommerce-image-fetcher/output-bigfiles --batch-size 8  --device mps --output output
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % ls -latr output 
+	-rw-r--r--   1 zhewu  staff     97 Nov 10 14:55 gpu_usage_output.txt
+	-rw-r--r--   1 zhewu  staff  14459 Nov 10 14:55 image_embeddings.bin
+	-rw-r--r--   1 zhewu  staff    540 Nov 10 14:55 suc.txt
+	-rw-r--r--   1 zhewu  staff      0 Nov 10 14:55 failed.txt
+	-rw-r--r--   1 zhewu  staff   3878 Nov 10 14:55 image_embeddings_report.json
+
+
+Image Embedding Workload generation
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % ../.venv/bin/python3 generate_input_imagefiles_list.py  ../../ecommerce-image-fetcher/input/stc-input.txt
+	warning: fewer than 2 fields, skipped: '352568466480'
+	warning: fewer than 2 fields, skipped: '333014380164'
+	warning: fewer than 2 fields, skipped: '350269223734'
+	warning: fewer than 2 fields, skipped: '233093702052'
+	8631607 records from 2993200 rows written to image_records.txt (1450 rows skipped)
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % 
+
+
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % mkdir input
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % cp image_records.txt input/inputImageList.txt
+
+
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % ../.venv/bin/python embed_images.py /Users/zhewu/src/ecommerce-image-fetcher/output-bigfiles --batch-size 8  --device mps --output output  --input input --start-record-number 1  --stop-record-number 1024 
+

@@ -2,7 +2,7 @@
 """Batch-embed images listed in inputImageList.txt.
 
 Binary format (little-endian):
-    header: magic[8], version[H], dimension[H], dtype[H], count[I]
+    header: magic[8], version[H], dimension[H], dtype[H]
     record: filename_length[I], filename[UTF-8], embedding[256 x float16]
 """
 from __future__ import annotations
@@ -30,17 +30,16 @@ from benchmark_10_embeddinggemma import (
 
 
 MAGIC = b"EGIMG256"
-VERSION = 1
+VERSION = 2
 DIMENSION = 256
 DTYPE_FLOAT16 = 1
-HEADER = struct.Struct("<8sHHHI")
+HEADER = struct.Struct("<8sHHH")
 RECORD_LENGTH = struct.Struct("<I")
-HEADER_COUNT_OFFSET = 14
 DEFAULT_MODEL = Path("/Users/zhewu/common-models/embeddinggemma-2")
 
 
-def read_image_list(image_dir: Path) -> tuple[list[str], list[Path]]:
-    list_path = image_dir / "inputImageList.txt"
+def read_image_list(image_dir: Path, input_dir: Path) -> tuple[list[str], list[Path]]:
+    list_path = input_dir / "inputImageList.txt"
     if not list_path.is_file():
         raise FileNotFoundError(f"Missing image list: {list_path}")
 
@@ -62,18 +61,10 @@ def read_image_list(image_dir: Path) -> tuple[list[str], list[Path]]:
     return names, paths
 
 
-def write_binary_header(output, count: int) -> int:
-    header = HEADER.pack(MAGIC, VERSION, DIMENSION, DTYPE_FLOAT16, count)
+def write_binary_header(output) -> int:
+    header = HEADER.pack(MAGIC, VERSION, DIMENSION, DTYPE_FLOAT16)
     output.write(header)
     return len(header)
-
-
-def update_binary_record_count(output, count: int) -> None:
-    current_position = output.tell()
-    output.seek(HEADER_COUNT_OFFSET)
-    output.write(struct.pack("<I", count))
-    output.flush()
-    output.seek(current_position)
 
 
 def write_binary_batch(output, names: list[str], embeddings: np.ndarray) -> int:
@@ -93,11 +84,39 @@ def write_binary_batch(output, names: list[str], embeddings: np.ndarray) -> int:
     return bytes_written
 
 
+def load_logged_names(path: Path) -> set[str]:
+    if not path.is_file():
+        return set()
+    return {
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    }
+
+
+def append_unique_names(path: Path, names: list[str], known: set[str]) -> int:
+    new_names = [name for name in names if name not in known]
+    if not new_names:
+        return 0
+    with path.open("a", encoding="utf-8") as output:
+        for name in new_names:
+            output.write(name + "\n")
+    known.update(new_names)
+    return len(new_names)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("directory", type=Path, help="Directory containing inputImageList.txt and images")
+    parser.add_argument("directory", type=Path, help="Directory containing the images")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        help="Directory containing inputImageList.txt (default: image directory)",
+    )
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
     parser.add_argument("--batch-size", type=int, default=10)
+    parser.add_argument("--start-record-number", type=int, default=1, help="1-based first input-list record to embed")
+    parser.add_argument("--stop-record-number", type=int, help="1-based last input-list record to embed")
     parser.add_argument("--device", choices=["auto", "mps", "cpu"], default="auto")
     parser.add_argument("--output", type=Path, help="Binary output path; defaults to directory/image_embeddings.bin")
     # parser.add_argument("--report", type=Path, help="JSON report path; defaults to directory/image_embeddings_report.json")
@@ -109,9 +128,12 @@ def main() -> None:
     if args.batch_size <= 0:
         raise ValueError("--batch-size must be positive")
     image_dir = args.directory.resolve()
+    input_dir = (args.input or args.directory).resolve()
     output_path = (args.output / "image_embeddings.bin").resolve()
     report_path = (args.output / "image_embeddings_report.json").resolve()
     gpu_output_path = (args.output / "gpu_usage_output.txt").resolve()
+    success_log_path = (args.output / "suc.txt").resolve()
+    failure_log_path = (args.output / "failed.txt").resolve()
     # gpu_output_path = (args.output or image_dir / "gpu_usage_output.txt").resolve()
     print(f"output_path {output_path}")
     print(f"report_path {report_path}")
@@ -121,7 +143,20 @@ def main() -> None:
     gpu_monitor_file = None
     report: dict | None = None
     try:
-        names, image_paths = read_image_list(image_dir)
+        all_names, all_image_paths = read_image_list(image_dir, input_dir)
+        start_record_number = args.start_record_number
+        stop_record_number = args.stop_record_number or len(all_names)
+        if start_record_number < 1:
+            raise ValueError("--start-record-number must be at least 1")
+        if stop_record_number < start_record_number:
+            raise ValueError("--stop-record-number must be >= --start-record-number")
+        if start_record_number > len(all_names):
+            raise ValueError(
+                f"--start-record-number {start_record_number} exceeds input list size {len(all_names)}"
+            )
+        stop_record_number = min(stop_record_number, len(all_names))
+        names = all_names[start_record_number - 1:stop_record_number]
+        image_paths = all_image_paths[start_record_number - 1:stop_record_number]
 
         if not args.model.exists():
             raise FileNotFoundError(f"Local model not found: {args.model}")
@@ -161,12 +196,15 @@ def main() -> None:
         attempted_count = 0
         failure_count = 0
         failed_images: list[str] = []
+        success_log_path.parent.mkdir(parents=True, exist_ok=True)
+        success_log_path.touch(exist_ok=True)
+        failure_log_path.touch(exist_ok=True)
+        logged_successes = load_logged_names(success_log_path)
+        logged_failures = load_logged_names(failure_log_path)
         next_progress_report = 10
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with output_path.open("wb") as output:
-            # Count is finalized after all batches so failed images are not
-            # advertised as valid binary records.
-            bytes_written += write_binary_header(output, 0)
+            bytes_written += write_binary_header(output)
             for start in range(0, len(names), args.batch_size):
                 batch_names = names[start:start + args.batch_size]
                 batch_paths = image_paths[start:start + args.batch_size]
@@ -191,6 +229,7 @@ def main() -> None:
                     encode_seconds += time.perf_counter() - encode_start
                     failure_count += len(batch_names)
                     failed_images.extend(batch_names)
+                    append_unique_names(failure_log_path, batch_names, logged_failures)
                     print(
                         f"[batch failure] images {start + 1}-{start + len(batch_names)}: "
                         f"{type(exc).__name__}: {exc}",
@@ -204,6 +243,7 @@ def main() -> None:
                 bytes_written += write_binary_batch(output, batch_names, batch_embeddings)
                 output.flush()
                 write_seconds += time.perf_counter() - write_start
+                append_unique_names(success_log_path, batch_names, logged_successes)
                 batch_count += 1
                 processed_count += len(batch_names)
 
@@ -219,8 +259,6 @@ def main() -> None:
                     )
                     next_progress_report = ((processed_count // 10) + 1) * 10
 
-            update_binary_record_count(output, processed_count)
-
         end_to_end_seconds = time.perf_counter() - process_start
         cpu_used_seconds = cpu_seconds() - cpu_start
         cpu_percent_one_core = 100.0 * cpu_used_seconds / end_to_end_seconds
@@ -230,7 +268,10 @@ def main() -> None:
             "model": "google/embeddinggemma-2",
             "model_path": str(args.model),
             "image_directory": str(image_dir),
-            "input_list": str(image_dir / "inputImageList.txt"),
+            "input_list": str(input_dir / "inputImageList.txt"),
+            "input_record_count": len(all_names),
+            "start_record_number": start_record_number,
+            "stop_record_number": stop_record_number,
             "filenames": names,
             "count": len(names),
             "processed_count": processed_count,
@@ -244,6 +285,7 @@ def main() -> None:
                 "version": VERSION,
                 "header_bytes": HEADER.size,
                 "record_layout": "uint32 filename_bytes + UTF-8 filename + 256 float16 values",
+                "termination": "records continue until EOF",
                 "bytes_written": bytes_written,
             },
             "device": device,
@@ -277,6 +319,8 @@ def main() -> None:
                 "embedding_binary": str(output_path),
                 "benchmark_report": str(report_path),
                 "gpu_usage_output": str(gpu_output_path),
+                "successful_images": str(success_log_path),
+                "failed_images": str(failure_log_path),
             },
             "method": "one SentenceTransformer.encode call per batch; records written and flushed after each batch; local checkpoint; no model download",
         }

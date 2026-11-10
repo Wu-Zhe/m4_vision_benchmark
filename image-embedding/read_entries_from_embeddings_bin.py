@@ -10,7 +10,7 @@ import numpy as np
 
 
 MAGIC = b"EGIMG256"
-HEADER = struct.Struct("<8sHHHI")
+HEADER = struct.Struct("<8sHHH")
 RECORD_LENGTH = struct.Struct("<I")
 DTYPE_FLOAT16 = 1
 
@@ -59,28 +59,38 @@ def main() -> None:
         raise FileNotFoundError(args.path)
 
     with args.path.open("rb") as stream:
-        magic, version, dimension, dtype_code, record_count = HEADER.unpack(
+        magic, version, dimension, dtype_code = HEADER.unpack(
             read_exact(stream, HEADER.size)
         )
         if magic != MAGIC:
             raise ValueError(f"Invalid magic: {magic!r}; expected {MAGIC!r}")
-        if version != 1:
+        if version != 2:
             raise ValueError(f"Unsupported binary format version: {version}")
         if dtype_code != DTYPE_FLOAT16:
             raise ValueError(f"Unsupported embedding dtype code: {dtype_code}")
 
         print(f"file={args.path}")
-        print(f"records={record_count} dimension={dimension} dtype=float16")
+        print(f"dimension={dimension} dtype=float16 records=until-EOF")
         print(f"requested_range={start_record}-{end_record}")
 
-        for record_number in range(1, record_count + 1):
-            filename, embedding = read_record(stream, record_number, dimension)
+        record_number = 1
+        while True:
+            length_bytes = stream.read(RECORD_LENGTH.size)
+            if not length_bytes:
+                break
+            if len(length_bytes) != RECORD_LENGTH.size:
+                raise EOFError("Truncated filename-length field")
+            filename_length = RECORD_LENGTH.unpack(length_bytes)[0]
+            filename = read_exact(stream, filename_length).decode("utf-8")
+            vector_bytes = read_exact(stream, dimension * np.dtype("<f2").itemsize)
+            embedding = np.frombuffer(vector_bytes, dtype="<f2").copy()
             if record_number >= start_record:
                 print(f"record={record_number}")
                 print(f"image_name={filename}")
                 print(f"embedding={np.array2string(embedding, threshold=np.inf, separator=', ')}")
             if record_number >= end_record:
                 break
+            record_number += 1
 
 
 if __name__ == "__main__":

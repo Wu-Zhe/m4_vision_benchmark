@@ -139,5 +139,73 @@ Image Embedding Workload generation
 	(ecommerce-image-fetcher) zhewu@Mac image-embedding % ../.venv/bin/python embed_images.py /Users/zhewu/src/ecommerce-image-fetcher/output-bigfiles --batch-size 8  --device mps --output output  --input input --start-record-number 1  --stop-record-number 1024 
 
 
-(ecommerce-image-fetcher) zhewu@Mac ~ % ln -s /Volumes/New\ Volume/ecommerce-images  .
+	(ecommerce-image-fetcher) zhewu@Mac image-embedding % ../.venv/bin/python embed_images.py /Volumes/New\ Volume/ecommerce-images/ --batch-size 8  --device mps --output output  --input input --start-record-number 1  --stop-record-number 1024
+
+
+	image-embedding % ../.venv/bin/python embed_images.py /Volumes/New\ Volume/ecommerce-images/ --batch-size 8  --device mps --output output  --input input --start-record-number 1  --stop-record-number 1024
+	Namespace(directory=PosixPath('/Volumes/New Volume/ecommerce-images'), input=PosixPath('input'), model=PosixPath('/Users/zhewu/common-models/embeddinggemma-2'), batch_size=8, start_record_number=1, stop_record_number=1024, validate_inputs=False, device='mps', output=PosixPath('output'))
+	output_path /Users/zhewu/src/m4_vision_benchmark/image-embedding/output/image_embeddings.bin
+	report_path /Users/zhewu/src/m4_vision_benchmark/image-embedding/output/image_embeddings_report.json
+	gpu_output_path /Users/zhewu/src/m4_vision_benchmark/image-embedding/output/gpu_usage_output.txt
+	W1110 15:41:06.408000 60655 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+	Loading weights: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 624/624 [00:00<00:00, 837.57it/s]
+	[progress] elapsed=35.95s processed=16/1024 attempted=16 failures=0 average=2.247s/image
+	[progress] elapsed=43.92s processed=24/1024 attempted=24 failures=0 average=1.830s/image
+	[progress] elapsed=51.74s processed=32/1024 attempted=32 failures=0 average=1.617s/image
+	[progress] elapsed=60.23s processed=40/1024 attempted=40 failures=0 average=1.506s/image
+	[progress] elapsed=76.23s processed=56/1024 attempted=56 failures=0 average=1.361s/image
+	[progress] elapsed=84.46s processed=64/1024 attempted=64 failures=0 average=1.320s/image
+	[progress] elapsed=92.59s processed=72/1024 attempted=72 failures=0 average=1.286s/image
+	[progress] elapsed=100.70s processed=80/1024 attempted=80 failures=0 average=1.259s/image
+	[progress] elapsed=117.47s processed=96/1024 attempted=96 failures=0 average=1.224s/image
+	[progress] elapsed=126.76s processed=104/1024 attempted=104 failures=0 average=1.219s/image
+	[progress] elapsed=136.82s processed=112/1024 attempted=112 failures=0 average=1.222s/image
+	[progress] elapsed=147.57s processed=120/1024 attempted=120 failures=0 average=1.230s/image
+	[progress] elapsed=170.23s processed=136/1024 attempted=136 failures=0 average=1.252s/image
+	[progress] elapsed=181.70s processed=144/1024 attempted=144 failures=0 average=1.262s/image
+	[progress] elapsed=193.92s processed=152/1024 attempted=152 failures=0 average=1.276s/image
+	[progress] elapsed=206.24s processed=160/1024 attempted=160 failures=0 average=1.289s/image
+	[progress] elapsed=230.43s processed=176/1024 attempted=176 failures=0 average=1.309s/image
+	[batch failure] images 177-184: ValueError: Unsupported or unrecognized image format. Supported formats are JPEG, PNG, WebP, GIF, AVIF and HEIC. If you know you have a valid image, try using the dedicated decode_* functions like decode_jpeg() instead.
+	[progress] elapsed=243.48s processed=184/1024 attempted=192 failures=8 average=1.323s/image
+	[progress] elapsed=256.72s processed=192/1024 attempted=200 failures=8 average=1.337s/image
+	[progress] elapsed=269.89s processed=200/1024 attempted=208 failures=8 average=1.349s/image
+	[progress] elapsed=298.19s processed=216/1024 attempted=224 failures=8 average=1.381s/image
+	[progress] elapsed=312.02s processed=224/1024 attempted=232 failures=8 average=1.393s/image
+	[progress] elapsed=327.42s processed=232/1024 attempted=240 failures=8 average=1.411s/image
+	[progress] elapsed=341.06s processed=240/1024 attempted=248 failures=8 average=1.421s/image
+	[progress] elapsed=384.22s processed=256/1024 attempted=264 failures=8 average=1.501s/image
+	[progress] elapsed=399.79s processed=264/1024 attempted=272 failures=8 average=1.514s/image
+	[progress] elapsed=413.77s processed=272/1024 attempted=280 failures=8 average=1.521s/image
+	[progress] elapsed=430.59s processed=280/1024 attempted=288 failures=8 average=1.538s/image
+	[progress] elapsed=501.39s processed=296/1024 attempted=304 failures=8 average=1.694s/image
+	[progress] elapsed=539.94s processed=304/1024 attempted=312 failures=8 average=1.776s/image
+	[progress] elapsed=605.48s processed=312/1024 attempted=320 failures=8 average=1.941s/image
+	[progress] elapsed=652.59s processed=320/1024 attempted=328 failures=8 average=2.039s/image
+	[progress] elapsed=774.58s processed=336/1024 attempted=344 failures=8 average=2.305s/image
+	[progress] elapsed=838.88s processed=344/1024 attempted=352 failures=8 average=2.439s/image
+	[progress] elapsed=900.43s processed=352/1024 attempted=360 failures=8 average=2.558s/image
+	[progress] elapsed=970.26s processed=360/1024 attempted=368 failures=8 average=2.695s/image
+	[progress] elapsed=1085.11s processed=376/1024 attempted=384 failures=8 average=2.886s/image
+	[progress] elapsed=1144.35s processed=384/1024 attempted=392 failures=8 average=2.980s/image
+	[progress] elapsed=1217.92s processed=392/1024 attempted=400 failures=8 average=3.107s/image
+	[progress] elapsed=1304.24s processed=400/1024 attempted=408 failures=8 average=3.261s/image
+	[progress] elapsed=1505.31s processed=416/1024 attempted=424 failures=8 average=3.619s/image
+	[progress] elapsed=1602.03s processed=424/1024 attempted=432 failures=8 average=3.778s/image
+	[progress] elapsed=1989.29s processed=432/1024 attempted=440 failures=8 average=4.605s/image
+	[progress] elapsed=2327.37s processed=440/1024 attempted=448 failures=8 average=5.289s/image
+	[progress] elapsed=2823.21s processed=456/1024 attempted=464 failures=8 average=6.191s/image
+	[progress] elapsed=2977.26s processed=464/1024 attempted=472 failures=8 average=6.417s/image
+	[progress] elapsed=3125.25s processed=472/1024 attempted=480 failures=8 average=6.621s/image
+	[progress] elapsed=3306.23s processed=480/1024 attempted=488 failures=8 average=6.888s/image
+	[progress] elapsed=3611.19s processed=496/1024 attempted=504 failures=8 average=7.281s/image
+	[progress] elapsed=3776.35s processed=504/1024 attempted=512 failures=8 average=7.493s/image
+	[progress] elapsed=3929.00s processed=512/1024 attempted=520 failures=8 average=7.674s/image
+	[progress] elapsed=4091.36s processed=520/1024 attempted=528 failures=8 average=7.868s/image
+	[progress] elapsed=4543.21s processed=536/1024 attempted=544 failures=8 average=8.476s/image
+	[progress] elapsed=4733.44s processed=544/1024 attempted=552 failures=8 average=8.701s/image
+	[progress] elapsed=4910.72s processed=552/1024 attempted=560 failures=8 average=8.896s/image
+	[progress] elapsed=5096.12s processed=560/1024 attempted=568 failures=8 average=9.100s/image
+	[progress] elapsed=5549.54s processed=576/1024 attempted=584 failures=8 average=9.635s/image
+	[progress] elapsed=5750.23s processed=584/1024 attempted=592 failures=8 average=9.846s/image
 
